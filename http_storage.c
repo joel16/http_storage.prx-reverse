@@ -45,9 +45,39 @@ Subroutine sceHttpStorageLseek - Address 0x00000280
 Exported in sceHttpStorage_driver
 Exported in sceHttpStorage
 */
-s32 sceHttpStorageLseek()
+s32 sceHttpStorageLseek(int storage_number)
 {
-
+	int ret;
+    //this is a table of two integers - this is why the $a0 had a << 2, to get the $a0-th integer :-)
+    // Data ref 0x000009C0 ... 0xFFFFFFFF 0xFFFFFFFF 0x00000000 0x00000000
+    int* http_storage_fd_table = 0x000009C0
+ 
+    int k1_restore = pspSdkSetK1(0);
+ 
+    if (storage_number < 0x2)
+	{
+		//Enter kernel mode
+		pspSdkSetK1(k1 << 11);
+		int target_fd = http_storage_fd_table[storage_number];
+       
+		// check if fd is valid, i-e if the storage has been opened (probably?)
+		if (target_fd != -1)
+		{
+			ret = sceIoLseek(target_fd);
+		} 
+		else
+		{
+			ret = 0x80000001;
+		}		
+    } 
+		
+	else 
+	{
+		ret = 0x80000100;
+    }
+        
+	pspSdkSetK1(k1_restore);
+    return ret;
 }
 
 /*
