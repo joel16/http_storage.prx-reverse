@@ -55,9 +55,23 @@ Subroutine sceHttpStorageGetstat - Address 0x000002F0
 Exported in sceHttpStorage_driver
 Exported in sceHttpStorage
 */
-s32 sceHttpStorageGetstat()
+s32 sceHttpStorageGetstat(int arg0, SceIoStat * stat)
 {
-
+	int ret = 0x80001FFF; 
+    int k1 = pspSdkSetK1(0);
+       
+    if(stat & 0x80000000 >= 0) //kernel check
+    {
+		if(arg0 == 0)
+			ret = sceIoGetStat("flash1:/net/http/auth.dat", stat);
+		else if(arg0 == 1)
+			ret = sceIoGetStat("flash1:/net/http/cookie.dat", stat);
+		else           
+			ret = 0x80000100;
+	}
+       
+    pspSdkSetK1(k1);
+    return ret;
 }
 
 /*
